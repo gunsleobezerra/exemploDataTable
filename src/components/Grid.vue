@@ -1,102 +1,72 @@
 <script setup lang="ts">
-import DataTable, { type DataTableProps } from 'primevue/datatable';
-import Column from 'primevue/column';
-import Paginator from 'primevue/paginator';
-import Button from 'primevue/button';
+import DataTable, { type DataTableProps } from "primevue/datatable";
+import Column, { ColumnProps } from "primevue/column";
+// import Paginator from "primevue/paginator";
+import Button from "primevue/button";
 
-export type Col = {
-    field: string;
-    header: string;
-    
-    
-    action?: {
-        label: string;
-        function: (data: any) => void;
-        class: string;
-    };
-    colClass?: string;
-    img?: string;
-    imgClass?: string;
-    routerLink?: {
-        label: string;
-        to: string | {
-            name: string;
-            params?: Array<{ name: string, dataKey: string }>
-        }
-        rotaName: string;
-        class: string;
-        icon?: string;
-
-
-    }
+export interface Col extends ColumnProps {
+  field:string;
+  action?: {
+    label: string;
+    function: (data: any) => void;
+    class: string;
+  };
+  colClass?: string;
+  img?: string;
+  imgClass?: string;
+  routerLink?: {
+    label: string;
+    to:
+      | string
+      | {
+          name: string;
+          params?: Array<{ name: string; dataKey: string }>;
+        };
+    rotaName: string;
+    class: string;
+    icon?: string;
+  };
 }
+
 export type GridProps = {
-    columns: Col[]
-} & DataTableProps
+  columns: Col[];
+} & DataTableProps;
+
 
 const props = defineProps<GridProps>();
 
 // essa função gera um link para uma imagem, substituindo os $<var>$ por data[var]
-function genImg(img: string, data: any) {
-    // example 'https://api.dicebear.com/7.x/icons/svg?seed=$id$'
-    // pegar todas as aparições de $<var>$ e substituir por data[var]
+function genImg(img: string, data: any,field:string = '') {
+  // example 'https://api.dicebear.com/7.x/icons/svg?seed=$id$'
+  // pegar todas as aparições de $<var>$ e substituir por data[var]
+  
+  if (data["imageLinks"]!= undefined) {
+    debugger;
+    if (data["imageLinks"][field]!= undefined) {
+      return data["imageLinks"][field];
+    }
+  }
+  let image = img.replace(/\$([a-zA-Z0-9]+)\$/g, (_, p1) => {
+    return data[p1];
+  });
 
-    return img.replace(/\$([a-zA-Z0-9]+)\$/g, (_, p1) => {
-
-        return data[p1]
-    })
+  return image;
 }
-
-// const gridConfig = ref<PrimeVueTableProps>()
-// watch(gridConfig,()=>{
-//     options.value = {
-//         ...options.value??{},
-//         ...gridConfig.value
-//     }
-// },{deep:true})
-// debugger
-// TODO - ver troca de linha arrasta e solta;
-//     - linha editave
-//     - 
 </script>
 <template>
-    <!-- <pre>{{ props.size }}</pre> -->
-    <DataTable v-bind="props" >
-        <Paginator :rows="rows" :totalRecords="totalRecords" :rowsPerPageOptions="rowsPerPageOptions">
-            <template #start="slotProps">
-                Page: {{ slotProps.state.page }}
-                First: {{ slotProps.state.first }}
-                Rows: {{ slotProps.state.rows }}
-            </template>
-            <template #end>
-                <Button type="button" class="btn">
-                    <i class="bi bi-search"></i>
-                </Button>
-            </template>
-        </Paginator>
-        <div v-for="{
-            field,
-            header,
-            action, img, colClass
-        } of props.columns" :key="field">
-
-
-            <Column v-if="action" :field="field" :header="header" :class="colClass">
-                <template #body="slotProps">
-                    <Button type="button" :class="action.class" @click="() => action.function(slotProps.data)">
-                        {{ action.label }}
-                    </Button>
-                </template>
-            </Column>
-
-            <Column v-else-if="img" :field="field" :header="header" :class="colClass">
-                <template #body="slotProps">
-                    <img :src="genImg(img!, slotProps.data)" alt="col image" class="placeholder rounded-circle me-3"
-                        width="48" height="48" />
-                </template>
-            </Column>
-            <Column v-else :field="field" :header="header" :class="colClass"></Column>
-        </div>
-    </DataTable>
+  <DataTable v-bind="props" :class="props.tableClass">
+    <Column v-for="col in props.columns" v-bind="col">
+      <template #body="slotProps" v-if="col.img">
+        
+        {{ slotProps.data[(typeof col.field==="string") ? col.field : 0] }}<img  :src="genImg(col.img, slotProps.data, col.field)" :class="col.imgClass" />
+      </template>
+      <template #body="slotProps" v-else-if="col.action">
+        <Button
+          :label="col.action.label"
+          :class="col.action.class"
+          @click="col.action.function(slotProps.data)"
+        />
+      </template>
+    </Column>
+  </DataTable>
 </template>
-<style></style>

@@ -1,12 +1,16 @@
 import { createApp } from "vue";
 import App from "./App.vue";
-import 'primevue/resources/themes/aura-light-green/theme.css'
 import PrimeVue from "primevue/config";
+import "../src/style.css";
+import wind from "./presets/wind";
 
 
 const app = createApp(App);
 
-app.use(PrimeVue, )
+app.use(PrimeVue, {
+    unstyled: false,
+    pt: wind                        //apply preset        
+});
 
 
 app.mount("#app");
