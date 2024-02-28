@@ -18,7 +18,7 @@ const jsonConfig: GridProps = reactive({
   filters: {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   },
-
+  searchBar: true,
   rows: 5,
   rowsPerPageOptions: [5, 10, 20, 50],
   alwaysShowPaginator: true,

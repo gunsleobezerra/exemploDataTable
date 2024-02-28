@@ -57,10 +57,12 @@ export interface Col extends ColumnProps {
 }
 
 export type GridProps = {
-  emptyMessage: string;
-  loadingMessage: string;
+  emptyMessage?: string;
+  loadingMessage?: string;
+  searchBar?: boolean;
+  searchBarClass?: string;
   columns: Col[];
-  filters: DataTableFilterMeta;
+  filters?: DataTableFilterMeta;
 } & DataTableProps;
 
 
@@ -88,8 +90,8 @@ function genImg(img: string, data: any,field:string = '') {
 <template>
   <DataTable v-bind="props" >
     <template #header>
-        {{ props.filters }}
-      <InputText  v-model="props.filters['global'].value" placeholder="Global Search" class="p-mr-2" />
+        
+      <InputText v-if="$props.searchBar" v-model="props.filters['global'].value" placeholder="Global Search" :class="props.searchBarClass" />
                     
                 
       </template>
