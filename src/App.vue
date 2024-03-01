@@ -1,12 +1,75 @@
 <template>
-  <Grid v-bind="jsonConfig" :value="jsonData" />
+  <Grid v-bind="jsonConfig" :value="jsonData"></Grid>
+
+  <Dialog
+    v-model:visible="visible"
+    modal
+    header="Edit Profile"
+    :style="{ width: '25rem' }"
+  >
+    <span class="p-text-secondary block mb-5">Update your information.</span>
+
+    <div class="p-fluid">
+      <div class="p-field">
+        <label for="name">Name</label>
+        <InputText id="name" v-model="newData.name" />
+      </div>
+      <div class="p-field">
+        <label for="email">Email</label>
+        <InputText id="email" v-model="newData.email" />
+      </div>
+      <div class="p-field">
+        <label for="country">Country</label>
+        <InputText id="country" v-model="newData.country" />
+      </div>
+      <div>ImageLinks</div>
+      <div v-for="field in jsonConfig.columns">
+        <label v-if="field.img" for="imageLinks">{{ field.field }}</label>
+        <InputText
+          v-if="field.img"
+          id="imageLinks"
+          v-model="newData.imageLinks[field.field]"
+        />
+      </div>
+    </div>
+
+    <div class="p-mt-4">
+      <Button label="Save" icon="pi pi-check" @click="addJsonData(newData)" />
+      <Button
+        label="Cancel"
+        icon="pi pi-times"
+        class="p-button-secondary p-ml-2"
+        @click="visible = false"
+      />
+    </div>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import Grid, { GridProps } from "./components/Grid.vue";
 import { FilterMatchMode } from "primevue/api";
-const jsonData = reactive( [
+import Dialog from "primevue/dialog";
+import InputText from "primevue/inputtext";
+import Button from "primevue/button";
+
+const newData = reactive({
+  id: 0,
+  name: "",
+  email: "",
+  country: "",
+  imageLinks: Object,
+});
+
+type dataColumn = {
+  id: number;
+  name: string;
+  email: string;
+  country: string;
+  imageLinks: Object;
+};
+
+const jsonData = reactive([
   {
     id: 1,
     name: "John ",
@@ -44,54 +107,65 @@ const jsonData = reactive( [
   },
 ]);
 
+function addJsonData(data: dataColumn) {
+  visible.value = false;
+  data.id = jsonData.length + 1;
+  jsonData.push(data);
+}
+
+const visible = ref(false);
+
 const jsonConfig: GridProps = reactive({
   emptyMessage: "Nenhum registro encontrado",
   loadingMessage: "Carregando...",
   tableClass: "w-full",
   paginator: true,
   editMode: "row",
-  editingRows: ref([]),
-
+  actionsHeader: [
+    {
+      label: "Adicionar Item",
+      actionButtonClass: "p-button-info bg-green-500",
+      function: {
+        name: "addItem",
+        class: "p-button-info",
+      },
+    },
+  ],
   gridFunctions: {
     functions: {
       addItem: () => {
-        //adicione um novo item
-        jsonData.push({
-          email: "leo@leo.com",
-          id: jsonData.length + 1,
-          name: "Leo",
-          country: "BR",
-          imageLinks: {
-            id: "https://api.dicebear.com/7.x/icons/svg?seed=$id$",
-            name: "https://upload.wikimedia.org/wikipedia/pt/thumb/d/d4/Mickey_Mouse.png/250px-Mickey_Mouse.png",
-            email:
-              "https://upload.wikimedia.org/wikipedia/pt/thumb/d/d4/Mickey_Mouse.png/250px-Mickey_Mouse.png",
-          },
-        });
+        visible.value = true;
       },
       updateItem: () => {
         console.log("Editar");
       },
       deleteItem: (data: object) => {
         //remove primeiro item com id 1
-        
+
         jsonData.find((item, index) => {
           if (item.id === data.id) {
             jsonData.splice(index, 1);
             return true;
           }
         });
-        
       },
       viewItem: () => {
         console.log("Visualizar");
       },
-      onRowEditSave: () => {
-        console.log("onRowEditSave");
+      onRowEditSave: (event:any) => {
+        //search for the item and update it
+        console.log(event);
+        jsonData.find((item, index) => {
+          console.log(item);
+          if (item.id === event.newData.id) {
+            jsonData[index] = event.newData;
+            return true;
+          }
+        });
       },
     },
     actionLabel: {
-      addItem: "Adicionar Leo",
+      addItem: "Adicionar",
       updateItem: "Editar",
       deleteItem: "Deletar",
       viewItem: "Visualizar",
@@ -113,7 +187,6 @@ const jsonConfig: GridProps = reactive({
       field: "id",
       header: "ID",
 
-      
       colClass: "col-1",
     },
     {
@@ -139,40 +212,23 @@ const jsonConfig: GridProps = reactive({
       header: "Country",
       colClass: "col-4",
     },
+
     {
-      field: "Renda",
-      header: "Country",
+      field: "actions",
+      header: "Ações",
       colClass: "col-2",
-    },
-    {
-      field: "action",
-      header: "Deletar",
-      colClass: "col-2",
-      actionButtonClass: "p-button-info bg-red-500",
-      action: {
-        label: "deleteItem",
-        function: {
-          name: "deleteItem",
-          class: "p-button-info",
+
+      actions: [
+        {
+          label: "deleteItem",
+          actionButtonClass: "p-button-danger bg-red-500 mr-2",
+          function: {
+            name: "deleteItem",
+            class: "",
+          },
         },
-      },
+      ],
     },
-    {
-      field: "criar action",
-      header: "Criar",
-      colClass: "col-2",
-      actionButtonClass: "p-button-info",
-      action: {
-        label: "addItem",
-        function: {
-          name: "addItem",
-          class: "p-button-info",
-        },
-      },
-    },
-    
   ],
 });
-
-
 </script>

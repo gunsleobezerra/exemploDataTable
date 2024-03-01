@@ -1,53 +1,39 @@
 <script setup lang="ts">
-import DataTable, { type DataTableProps,DataTableFilterMeta } from "primevue/datatable";
+import DataTable, {
+  type DataTableProps,
+  DataTableFilterMeta,
+} from "primevue/datatable";
 import Column, { ColumnProps } from "primevue/column";
 // import Paginator from "primevue/paginator";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { ref } from "vue";
 
-
-
-
-
-
- 
-
 export interface Col extends ColumnProps {
-  field:string;
-  actionButtonClass?: string;
-  action?: {
-    label: string;
-    function: {
-      class: string;
-      name: string;
+  field: string;
+  actions?: [
+    {
+      actionButtonClass?: string;
+      label: string;
+      function: {
+        class: string;
+        name: string;
+      };
     }
-  };
+  ];
   colClass?: string;
   img?: string | boolean;
   imgClass?: string;
-  routerLink?: {
-    label: string;
-    to:
-      | string
-      | {
-          name: string;
-          params?: Array<{ name: string; dataKey: string }>;
-        };
-    rotaName: string;
-    class: string;
-    icon?: string;
-  };
 }
 type GridFunctions = {
-  functions:{
-  [key: string]: Function;
-  }
+  functions: {
+    [key: string]: Function;
+  };
 
   actionLabel: {
-    [key :string]: string;
-  }
-}
+    [key: string]: string;
+  };
+};
 
 export interface GridProps extends DataTableProps {
   emptyMessage?: string;
@@ -56,9 +42,18 @@ export interface GridProps extends DataTableProps {
   searchBarClass?: string;
   columns: Col[];
   filters?: DataTableFilterMeta;
-  gridFunctions:  GridFunctions;
-
-} 
+  gridFunctions: GridFunctions;
+  actionsHeader?: [
+    {
+      actionButtonClass: string;
+      label: string;
+      function: {
+        class: string;
+        name: string;
+      };
+    }
+  ];
+}
 
 /**  
  * A estrutura `gridFunctions` é um objeto que contém duas propriedades: `functions` e `actionLabel`.
@@ -80,65 +75,86 @@ Da mesma forma, um desenvolvedor pode alterar os rótulos das ações substituin
 
 const props = defineProps<GridProps>();
 
-const filters= props.filters ?? ref({global: { value: null, matchMode: 'contains' }});
+const filters =
+  props.filters ?? ref({ global: { value: null, matchMode: "contains" } });
 
 // essa função gera um link para uma imagem, substituindo os $<var>$ por data[var]
-function genImg(img: string | boolean, data: any,field:string = '') {
+function genImg(img: string | boolean, data: any, field: string = "") {
   // example 'https://api.dicebear.com/7.x/icons/svg?seed=$id$'
   // pegar todas as aparições de $<var>$ e substituir por data[var]
-  
+
   if (data.imageLinks != undefined) {
     if (data.imageLinks[field] != undefined) {
       return data.imageLinks[field];
     } else {
-      img = ""
+      img = "";
       return 'https://api.dicebear.com/7.x/icons/svg?seed="undef"';
     }
   }
-  
-  
-
-  
 }
+const editingRows = ref([]);
 </script>
 <template>
-  <DataTable v-bind="props" @row-edit-save="props.gridFunctions.functions.onRowEditSave" editMode="row" data-key="id"
+  <DataTable
+    v-bind="props"
+    v-model:editingRows="editingRows"
+    @row-edit-save="props.gridFunctions.functions.onRowEditSave"
     :pt="{
-        table: { style: 'min-width: 50rem' },
-        column: {
-            bodycell: ({ state }) => ({
-                style:  state['d_editing']&&'padding-top: 0.6rem; padding-bottom: 0.6rem'
-            })
-        }
-    }">
+      table: { style: 'min-width: 50rem' },
+      column: {
+        bodycell: ({ state }) => ({
+          style:
+            state['d_editing'] && 'padding-top: 0.6rem; padding-bottom: 0.6rem',
+        }),
+      },
+    }"
+  >
     <template #header>
-        
-      <InputText v-if="props.searchBar" v-model="filters['global'].value" placeholder="Global Search" :class="props.searchBarClass" />
-                    
-                
-      </template>
-    <template #empty> {{props.emptyMessage}} </template>
-    <template #loading> {{props.loadingMessage}} </template>
+      <InputText
+        v-if="props.searchBar"
+        v-model="filters['global'].value"
+        placeholder="Global Search"
+        :class="props.searchBarClass"
+      />
+      <div v-if="props.actionsHeader" class="flex items-center space-x-1 mt-3">
+        <Button
+          v-for="action in props.actionsHeader"
+          :label="action.label"
+          :class="action.actionButtonClass"
+          @click="props.gridFunctions.functions[action.function.name]"
+        ></Button>
+      </div>
+    </template>
+    <template #empty> {{ props.emptyMessage }} </template>
+    <template #loading> {{ props.loadingMessage }} </template>
     <Column v-for="col in props.columns" v-bind="col">
-      <template #editor="{ data, field }">
-                    <InputText v-model="data[field]" />
+      <template #editor="{ data, field }" v-if="!col.img">
+        <InputText v-model="data[field]" />
       </template>
       <template #body="slotProps" v-if="col.img">
         <div class="flex items-center space-x-1">
-        {{ slotProps.data[(typeof col.field==="string") ? col.field : 0] }}<img  :src="genImg(col.img, slotProps.data, col.field)" :class="col.imgClass" />
+          {{ slotProps.data[typeof col.field === "string" ? col.field : 0]
+          }}<img
+            :src="genImg(col.img, slotProps.data, col.field)"
+            :class="col.imgClass"
+          />
         </div>
       </template>
-      
-      <template #body="slotProps" v-if="col.action">
+      <template #body="slotProps" v-if="col.actions">
         <Button
-          :label="props.gridFunctions.actionLabel[col.action.label]"
-          :severity="col.actionButtonClass"
-          @click="props.gridFunctions.functions[col.action.function.name](slotProps.data)"
+          v-for="action in col.actions"
+          :label="props.gridFunctions.actionLabel[action.function.name]"
+          :severity="action.actionButtonClass"
+          @click="
+            props.gridFunctions.functions[action.function.name](slotProps.data)
+          "
         ></Button>
-
-        
       </template>
     </Column>
-    <Column :rowEditor="true" style="width: 10%; min-width: 8rem" bodyStyle="text-align:center"></Column>
+    <Column
+      :rowEditor="true"
+      style="width: 10%; min-width: 8rem"
+      bodyStyle="text-align:center"
+    ></Column>
   </DataTable>
 </template>

@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/dot-object": "^2.1.6",
+    "dot-object": "^2.1.4",
     "primevue": "^3.48.1",
     "vue": "^3.4.19"
   },
