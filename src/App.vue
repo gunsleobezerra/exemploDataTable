@@ -3,77 +3,13 @@
 </template>
 
 <script setup lang="ts">
-
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 import Grid, { GridProps } from "./components/Grid.vue";
 import { FilterMatchMode } from "primevue/api";
-
-const jsonConfig: GridProps = reactive({
-  emptyMessage: "Nenhum registro encontrado",
-  loadingMessage: "Carregando...",
-  tableClass: "w-full",
-  paginator: true,
-  editMode: "cell",
-  globalFilterFields: ["name", "email", "country"],
-  filters: {
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  },
-  searchBar: true,
-  rows: 5,
-  rowsPerPageOptions: [5, 10, 20, 50],
-  alwaysShowPaginator: true,
-  resizableColumns: true,
-  sortField: "email",
-  sortOrder: -1,
-  columns: [
-    {
-      field: "id",
-      header: "ID",
-
-      action: {
-        label: "addItem",
-        function: {
-          name: "addItem",
-          class: "p-button-info",
-        },
-      },
-      colClass: "col-1",
-    },
-    {
-      field: "name",
-      header: "Nome",
-
-      colClass: "col-2",
-      img: true,
-      imgClass: "w-10 h-10 rounded-full",
-      sortable: true,
-    },
-    {
-      sortable: true,
-      field: "email",
-      header: "Email",
-      colClass: "col-3",
-      img: true,
-      imgClass: "w-10 h-10  ",
-    },
-    {
-      sortable: true,
-      field: "country",
-      header: "Country",
-      colClass: "col-4",
-    },
-    {
-      field: "Renda",
-      header: "Country",
-      colClass: "col-2",
-    },
-  ],
-});
-
-const jsonData = [
+const jsonData = reactive( [
   {
     id: 1,
-    name: "John",
+    name: "John ",
     email: "john@example.com",
     country: "USA",
     imageLinks: {
@@ -106,5 +42,137 @@ const jsonData = [
         "https://upload.wikimedia.org/wikipedia/pt/thumb/d/d4/Mickey_Mouse.png/250px-Mickey_Mouse.png",
     },
   },
-];
+]);
+
+const jsonConfig: GridProps = reactive({
+  emptyMessage: "Nenhum registro encontrado",
+  loadingMessage: "Carregando...",
+  tableClass: "w-full",
+  paginator: true,
+  editMode: "row",
+  editingRows: ref([]),
+
+  gridFunctions: {
+    functions: {
+      addItem: () => {
+        //adicione um novo item
+        jsonData.push({
+          email: "leo@leo.com",
+          id: jsonData.length + 1,
+          name: "Leo",
+          country: "BR",
+          imageLinks: {
+            id: "https://api.dicebear.com/7.x/icons/svg?seed=$id$",
+            name: "https://upload.wikimedia.org/wikipedia/pt/thumb/d/d4/Mickey_Mouse.png/250px-Mickey_Mouse.png",
+            email:
+              "https://upload.wikimedia.org/wikipedia/pt/thumb/d/d4/Mickey_Mouse.png/250px-Mickey_Mouse.png",
+          },
+        });
+      },
+      updateItem: () => {
+        console.log("Editar");
+      },
+      deleteItem: (data: object) => {
+        //remove primeiro item com id 1
+        
+        jsonData.find((item, index) => {
+          if (item.id === data.id) {
+            jsonData.splice(index, 1);
+            return true;
+          }
+        });
+        
+      },
+      viewItem: () => {
+        console.log("Visualizar");
+      },
+      onRowEditSave: () => {
+        console.log("onRowEditSave");
+      },
+    },
+    actionLabel: {
+      addItem: "Adicionar Leo",
+      updateItem: "Editar",
+      deleteItem: "Deletar",
+      viewItem: "Visualizar",
+    },
+  },
+  globalFilterFields: ["name", "email", "country"],
+  filters: {
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  },
+  searchBar: true,
+  rows: 5,
+  rowsPerPageOptions: [5, 10, 20, 50],
+  alwaysShowPaginator: true,
+  resizableColumns: true,
+  sortField: "email",
+  sortOrder: -1,
+  columns: [
+    {
+      field: "id",
+      header: "ID",
+
+      
+      colClass: "col-1",
+    },
+    {
+      field: "name",
+      header: "Nome",
+
+      colClass: "col-2",
+      img: true,
+      imgClass: "w-10 h-10 rounded-full",
+      sortable: true,
+    },
+    {
+      sortable: true,
+      field: "email",
+      header: "Email",
+      colClass: "col-3",
+      img: true,
+      imgClass: "w-10 h-10  ",
+    },
+    {
+      sortable: true,
+      field: "country",
+      header: "Country",
+      colClass: "col-4",
+    },
+    {
+      field: "Renda",
+      header: "Country",
+      colClass: "col-2",
+    },
+    {
+      field: "action",
+      header: "Deletar",
+      colClass: "col-2",
+      actionButtonClass: "p-button-info bg-red-500",
+      action: {
+        label: "deleteItem",
+        function: {
+          name: "deleteItem",
+          class: "p-button-info",
+        },
+      },
+    },
+    {
+      field: "criar action",
+      header: "Criar",
+      colClass: "col-2",
+      actionButtonClass: "p-button-info",
+      action: {
+        label: "addItem",
+        function: {
+          name: "addItem",
+          class: "p-button-info",
+        },
+      },
+    },
+    
+  ],
+});
+
+
 </script>
