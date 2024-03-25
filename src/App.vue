@@ -28,7 +28,7 @@
         <InputText
           v-if="field.img"
           id="imageLinks"
-          v-model="newData.imageLinks[field.field]"
+            v-model="newData.imageLinks[field.field] as string"
         />
       </div>
     </div>
@@ -194,7 +194,7 @@ const jsonConfig: GridProps = reactive({
       header: "Nome",
 
       colClass: "col-2",
-      img: true,
+      
       imgClass: "w-10 h-10 rounded-full",
       sortable: true,
     },
@@ -203,7 +203,7 @@ const jsonConfig: GridProps = reactive({
       field: "email",
       header: "Email",
       colClass: "col-3",
-      img: true,
+      
       imgClass: "w-10 h-10  ",
     },
     {
